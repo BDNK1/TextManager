@@ -24,6 +24,9 @@ void initDocs();
 void showDocs();
 void showArchives();
 int avgDocs();
+void findInArchive();
+void findByAuthor();
+void findByDate();
 
 class Date {
 protected:
@@ -57,6 +60,7 @@ public:
     Person(string surname, string name, Date* dateOfBirth);
     
 };
+
 class Document;
 class Author : public Person {
 public:
@@ -111,9 +115,10 @@ private:
 public:
     Document(string name, int size,Author* author, vector<string> keywords);
     static void delDoc();
-    void getDocInfo();
-    void showDocInfo();
-    string getText();
+    void workWithDoc();
+    void addText();
+    void removeText();
+    void openDoc();
     Author* getAuthor();
     vector<string> getKeywords();
     static void makeDoc();

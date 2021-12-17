@@ -7,4 +7,5 @@ int main(int argv, char* argc[])
     initArchives();
     initDocs();
     menu();
+    
 }

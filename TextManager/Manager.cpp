@@ -9,24 +9,93 @@ string projectPath;
 void menu() {
     int choose=-1;
     while (choose != 0) {
-        cout <<endl<< "1) Show all archives" << endl << "2) Show all docs" << endl << "3) Create new archive" << endl << "4) Create new document" << endl << "5) Average number of documents in archives" << endl << "0) Exit";
+        cout <<endl<< "1) Show all archives" << endl << "2) Show all docs" << endl << "3) Create new archive" << endl << "4) Create new document" << endl << "5) Average number of documents in archives" << endl << "0) Exit"<<endl;
         cin >> choose;
+
+
         switch (choose) {
-        case 1:
-            showArchives();
+
+        case 1:{
+            int choose2 = -1;
+            while (choose != 4) {
+                showArchives();
+                cout << endl << "1) Unpack archive" << endl << "2) View files inside archive" << endl << "3) Delete Archive" << endl << "4) Go back" << endl;
+                cin >> choose2;
+                switch (choose2) {
+                     case 1:{
+                        int numberFile;
+                        cout<<endl << "enter number of archive: ";
+                        cin >> numberFile;
+                        Archives[--numberFile]->InCompress();
+                        break;
+                    }
+                     case 2: {
+                         int numberFile;
+                         cout<<endl << "enter number of archive: ";
+                         cin >> numberFile;
+                         Archives[--numberFile]->showArchiveInfo();
+                         break;
+                     }
+                     case 3: {
+                         Archive::delArchive();
+                         break;
+                     }
+                     case 4:
+                         return;
+                }
+            }
             break;
-        case 2:
-            showDocs();
+        }
+
+        case 2:{
+            int choose3 = -1;
+            while (choose3 != 4) {
+                showDocs();
+                cout << endl << "1) Open document" << endl << "2) Show keywords of document" << endl << "3) Delete file" << endl<<"4) Go back"<<endl;
+                cin >> choose3;
+                switch (choose3) {
+                case 1: {
+                    int numberDoc;
+                    cout<<endl << "Enter number of file: ";
+                    cin >> numberDoc;
+                    Docs[--numberDoc]->openDoc();
+                    Docs[numberDoc]->workWithDoc();
+                    break;
+                    }
+                case 2: {
+                    int numberDoc;
+                    cout<<endl << "Enter number of file: ";
+                    cin >> numberDoc;
+                    vector<string> keys = Docs[--numberDoc]->getKeywords();
+                    cout << endl;
+                    for (int i = 0; i < keys.size(); i++) {
+
+                        cout << keys[i] + " ";
+                    };
+                    
+                    cout << endl;
+                    break;
+                    }
+                case 3: {
+                    Document::delDoc();
+                    break;
+                    }
+                }
+            }
             break;
+        }
         case 3:
             Archive::makeArchive();
             break;
+
         case 4:
             Document::makeDoc();
             break;
+
         case 5:
             avgDocs();
             break;
+
         case 0:
             cout << endl << "Bye!";
             exit(0);
@@ -221,7 +290,7 @@ void initDocs()
             ifstream fin;
             fin.open(path);
             string surname, name;
-            string keywords;
+            string keyword;
             vector<string> keywordsV;
             int d, m, y;
             fin >> name;
@@ -229,9 +298,10 @@ void initDocs()
             fin >> d;
             fin >> m;
             fin >> y;
-            getline(fin, keywords);
-            SplitString(keywords,keywordsV);
-            cout << keywords;
+            while (keyword != "|") {
+                fin >> keyword;
+                keywordsV.push_back(keyword);
+            }
             Date* date = new Date(d,m,y);
             Author* author = Author::addAuthor(surname,name,date);
             Document* doc = new Document(filename, size,author,keywordsV);
@@ -242,9 +312,24 @@ void initDocs()
 
 void showDocs()
 {
+    TextTable t('-', '|', '+');
+    t.add("No ");
+    t.add(" Name ");
+    t.add(" Author ");
+    t.add(" Date of creation ");
+    t.add(" Size ");
+
+    t.endOfRow();
     for (int i = 0; i < Docs.size(); i++) {
-        cout<<i+1<<" " << Docs[i]->getName()<<endl;
+        t.add(to_string(i + 1));
+        t.add(Docs[i]->getName());
+        t.add(Docs[i]->getAuthor()->getName() +" "+ Docs[i]->getAuthor()->getSurname());
+        t.add(Docs[i]->getDate()->toString());
+        t.add(to_string(Docs[i]->getSize()));
+        t.endOfRow();
     }
+    t.setAlignment(2, TextTable::Alignment::RIGHT);
+    cout << t;
 }
 
 void showArchives()
@@ -306,12 +391,17 @@ void Document::makeDoc()
 {
     string name,res,text;
     vector<string> keywords;
-
+    vector<string> allText;
     cout << "input name of document: ";
     cin >> name;
-    cout << "input text: ";
+    cout << "input text (print 's' to stop): ";
     cin.ignore();
-    getline(cin, text);
+    while (text != "s") {
+        text = "";
+        getline(cin, text);
+        if (text != "s") { allText.push_back(text); }
+    }
+    
     Author* author = Author::addAuthor();
     cout <<"input keywords";
     cin.ignore();
@@ -323,14 +413,16 @@ void Document::makeDoc()
     for (int i = 0; i < keywords.size(); i++) {
         o << keywords[i]<<" ";
     }
+    o << " |";
     o << endl;
-    o << text << endl;
+    for (int i = 0; i < allText.size(); i++) {
+
+        o << allText[i] << endl;
+    }
     int x =fs::file_size(projectPath + "\\" + name + ".txt");
 
     Document* th = new Document(name, x,author,keywords);
-
     author->addDoc(th);
-    Docs.push_back(th);
     
 }
 
@@ -347,13 +439,61 @@ void Archive::delArchive()
 
 void Document::delDoc()
 {
-    showDocs();
     int choose;
     cout << "input number of file to delete: ";
     cin >> choose;
     choose--;
     remove(Docs[choose]->getFullPath().c_str());
     Docs.erase(Docs.begin() + choose);
+}
+
+void Document::workWithDoc()
+{
+    int choose = -1;
+    while (choose != 3) {
+
+        cout << "1) Add text" << endl << "2) Remove part of text" << endl << "3) Go back" << endl;
+        cin >> choose;
+        switch (choose) {
+            case 1:
+                addText();
+                break;
+            case 2:
+                removeText();
+                break;
+            case 3:
+                return;
+        }
+    }
+}
+
+void Document::addText()
+{
+    ofstream o((projectPath + "\\" + name + ".txt").c_str(), std::ios_base::app);
+    string text;
+    vector<string> allText;
+    cout << "input text you want to add to end of file";
+    cout << "input text (print 's' to stop): ";
+    cin.ignore();
+    while (text != "s") {
+        text = "";
+        getline(cin, text);
+        if (text != "s") { allText.push_back(text); }
+    }
+
+    
+    for (int i = 0; i < allText.size(); i++) {
+
+        o << allText[i] << endl;
+    }
+
+}
+
+void Document::removeText()
+{
+    string text;
+    cout << "input part of text you want to delete";
+   
 }
 
 void Archive::unpackArchive()
@@ -532,26 +672,30 @@ Date* File::getDate()
     return dateOfCreation;
 }
 
-void Document::getDocInfo()
-{
 
+void Document::openDoc()
+{
+    cout<<endl<<"    " << name<<endl;
+    ifstream fin;
+    fin.open(path+"\\"+name + format);
+    string buf;
+    string text;
+    while (buf != "|") {
+        fin >> buf;
+    }
+    while (!fin.eof()) {
+        text = "";
+        getline(fin, text);
+        cout << text<<endl;
+    }
 }
 
-void Document::showDocInfo()
-{
-
-}
 
 Author* Document::getAuthor()
 {
     return this->author;
 }
 
-string Document::getText()
-{
-    cout << "text";
-    return "text";
-}
 
 vector<string> Document::getKeywords()
 {
@@ -593,15 +737,19 @@ void Archive::showArchiveInfo()
     }
     if (toks % 2 == 1) toks--;
     int files = toks / 2;
+
+    TextTable t('-', '|', '+');
+    t.add("Name of file");
+    t.add("Size of file");
+    t.endOfRow();
     for (int i = 0; i < tokens.size()-1; i+=2) {
         
-            cout << "name: ";
-        
-        cout << tokens[i+1];
-
-            cout << " size: ";
-            cout << tokens[i] << endl;
-    }
+            t.add(tokens[i+1]);
+            t.add(tokens[i]);
+            t.endOfRow();
+}
+    t.setAlignment(2, TextTable::Alignment::RIGHT);
+    cout << t;
 }
 
 
