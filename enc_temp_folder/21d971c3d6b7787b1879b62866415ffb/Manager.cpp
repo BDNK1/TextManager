@@ -5,7 +5,15 @@ vector<Archive*> Archives;
 vector<Document*> Docs;
 vector<Author*> Authors;
 string projectPath;
-
+double avgDocs() {
+    double count = 0;
+    double sum = 0;
+    for (int i = 0; i < Archives.size(); i++) {
+        sum += (double)Archives[i]->getDocsCount();
+        count++;
+    }
+    return sum / count;
+};
 void menu() {
     int choose=-1;
     while (choose != 0) {
@@ -181,7 +189,7 @@ void menu() {
             Document::makeDoc();
             break;
         case 7:
-            cout<<endl<<"average number of documents in archives: " << avgDocs()<<endl;
+            cout<<avgDocs();
             break;
         case 0:
             cout << endl << "Bye!";
@@ -189,16 +197,6 @@ void menu() {
         }
     }
 }
-
-double avgDocs() {
-    double count = 0;
-    double sum = 0;
-    for (int i = 0; i < Archives.size(); i++) {
-        sum += (double)Archives[i]->getDocsCount();
-        count++;
-    }
-    return sum / count;
-};
 void SplitString(string s, vector<string>& v) {
 
     string temp = "";

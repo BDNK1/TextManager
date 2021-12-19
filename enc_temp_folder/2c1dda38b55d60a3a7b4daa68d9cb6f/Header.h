@@ -26,7 +26,7 @@ void showDocs();
 void showAuthors();
 void showDocs(vector<int> arr);
 void showArchives();
-double avgDocs();
+
 class Date {
 protected:
     bool leapyear;
